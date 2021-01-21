@@ -77,4 +77,40 @@ class VideosControllerTest < ActionDispatch::IntegrationTest
       expect(data["errors"]).must_include "title"
     end
   end
+  describe "create" do
+    let(:video_params) {
+      {
+          title: "Alf the movie",
+          overview: "The most early 90s movie of all time",
+          release_date: "2020-12-25",
+          inventory: 6,
+          available_inventory: 6
+      }
+    }
+    it "can create a valid video" do
+      # Assert
+      expect {
+        post videos_path, params: video_params
+      }.must_differ "Video.count", 1
+
+      must_respond_with :created
+    end
+
+    it "will respond with bad request and errors for an invalid movie" do
+      # Arrange
+      video_params[:title] = nil
+
+      # Assert
+      expect {
+        post videos_path, params: video_params
+      }.wont_change "Video.count"
+      body = JSON.parse(response.body)
+
+      expect(body.keys).must_include "errors"
+      expect(body["errors"].keys).must_include "title"
+      expect(body["errors"]["title"]).must_include "can't be blank"
+
+      must_respond_with :bad_request
+    end
+  end
 end
